@@ -11,16 +11,13 @@ import os
 from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 
-# Load the pre-trained model
 model_path = os.path.join(settings.BASE_DIR, 'classification/models/brain_tumor_model.keras')
 model = tf.keras.models.load_model(model_path)
 
-labels = ['Glioma', 'Meningioma', 'No Tumor', 'Pituitary Tumor']  # Correct class mapping
+labels = ['Glioma', 'Meningioma', 'No Tumor', 'Pituitary Tumor']
 
-# Initialize Llama3 using Ollama (Runs locally)
-llm = OllamaLLM(model="llama3")
+llm = OllamaLLM(model="llama3.2:3b", base_url="http://127.0.0.1:11434")
 
-# Define prompt template for medical questions
 prompt = PromptTemplate(
     input_variables=["diagnosis"],
     template="Given a patient diagnosed with {diagnosis}, generate 5 important questions a doctor should ask to assess their condition."
@@ -49,7 +46,7 @@ class BrainTumorPredictionView(APIView):
         # Generate medical questions using Llama3
         diagnosis = labels[predicted_class]
         formatted_prompt = prompt.format(diagnosis=diagnosis)
-        llm_response = llm(formatted_prompt)  # Call Llama3 directly
+        llm_response = llm.invoke(formatted_prompt)  # Corrected LLM call
 
         result = {
             "prediction": diagnosis,
